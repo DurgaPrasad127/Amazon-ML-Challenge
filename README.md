@@ -123,4 +123,19 @@ Scatter Plot: Actual vs Predicted Prices
 Error Histogram: Distribution of Prediction Errors
 Correlation Heatmap: Numeric Features
 
+## 4. Model Performance
+
+### 4.1 Validation Results
+
+* **SMAPE Score:** 51.82437563189352
+* **Leaderboard Rank:** 1344
+
+### Other Metrics
+
+* **MAE:** 11.457677624314073
+* **RMSE:** 27.4367
+* **R² Score:** 0.3243
+
+
+
 ---
