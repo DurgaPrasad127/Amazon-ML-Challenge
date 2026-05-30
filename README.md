@@ -1,106 +1,125 @@
-# ML Challenge 2025 Problem Statement
+# ML Challenge 2025: Smart Product Pricing Solution Template
 
-## Smart Product Pricing Challenge
+**Team Name:** Quantum Coders  
+**Team Members:** 
+1. B. Prasad
+2. M. Ankitha
+3. N. Swathi
+4. P. Durga Prasad
+**Submission Date:** 13th October, 2025
 
-In e-commerce, determining the optimal price point for products is crucial for marketplace success and customer satisfaction. Your challenge is to develop an ML solution that analyzes product details and predict the price of the product. The relationship between product attributes and pricing is complex - with factors like brand, specifications, product quantity directly influence pricing. Your task is to build a model that can analyze these product details holistically and suggest an optimal price.
+---
 
-### Data Description:
+## 1. Executive Summary
+Our team, Quantum Coders, developed a robust multimodal machine
+learning model for optimal product price prediction. We integrated 
+textual product descriptions with numeric features (like item quantity, 
+length, and digit counts) using a LightGBM-based regressionapproach. 
+This model efficiently learns complex relationships between catalog
+content and pricingwhile remaining computationally lightweight and 
+interpretable
 
-The dataset consists of the following columns:
+---
 
-1. **sample_id:** A unique identifier for the input sample
-2. **catalog_content:** Text field containing title, product description and an Item Pack Quantity(IPQ) concatenated.
-3. **image_link:** Public URL where the product image is available for download. 
-   Example link - https://m.media-amazon.com/images/I/71XfHPR36-L.jpg
-   To download images use `download_images` function from `src/utils.py`. See sample code in `src/test.ipynb`.
-4. **price:** Price of the product (Target variable - only available in training data)
+## 2. Methodology Overview
 
-### Dataset Details:
-
-- **Training Dataset:** 75k products with complete product details and prices
-- **Test Set:** 75k products for final evaluation
-
-### Output Format:
-
-The output file should be a CSV with 2 columns:
-
-1. **sample_id:** The unique identifier of the data sample. Note the ID should match the test record sample_id.
-2. **price:** A float value representing the predicted price of the product.
-
-Note: Make sure to output a prediction for all sample IDs. If you have less/more number of output samples in the output file as compared to test.csv, your output won't be evaluated.
-
-### File Descriptions:
-
-*Source files*
-
-1. **src/utils.py:** Contains helper functions for downloading images from the image_link. You may need to retry a few times to download all images due to possible throttling issues.
-2. **sample_code.py:** Sample dummy code that can generate an output file in the given format. Usage of this file is optional.
-
-*Dataset files*
-
-1. **dataset/train.csv:** Training file with labels (`price`).
-2. **dataset/test.csv:** Test file without output labels (`price`). Generate predictions using your model/solution on this file's data and format the output file to match sample_test_out.csv
-3. **dataset/sample_test.csv:** Sample test input file.
-4. **dataset/sample_test_out.csv:** Sample outputs for sample_test.csv. The output for test.csv must be formatted in the exact same way. Note: The predictions in the file might not be correct
-
-### Constraints:
-
-1. You will be provided with a sample output file. Format your output to match the sample output file exactly. 
-
-2. Predicted prices must be positive float values.
-
-3. Final model should be a MIT/Apache 2.0 License model and up to 8 Billion parameters.
-
-### Evaluation Criteria:
-
-Submissions are evaluated using **Symmetric Mean Absolute Percentage Error (SMAPE)**: A statistical measure that expresses the relative difference between predicted and actual values as a percentage, while treating positive and negative errors equally.
-
-**Formula:**
-```
-SMAPE = (1/n) * Σ |predicted_price - actual_price| / ((|actual_price| + |predicted_price|)/2)
-```
-
-**Example:** If actual price = $100 and predicted price = $120  
-SMAPE = |100-120| / ((|100| + |120|)/2) * 100% = 18.18%
-
-**Note:** SMAPE is bounded between 0% and 200%. Lower values indicate better performance.
-
-### Leaderboard Information:
-
-- **Public Leaderboard:** During the challenge, rankings will be based on 25K samples from the test set to provide real-time feedback on your model's performance.
-- **Final Rankings:** The final decision will be based on performance on the complete 75K test set along with provided documentation of the proposed approach by the teams.
-
-### Submission Requirements:
-
-1. Upload a `test_out.csv` file in the Portal with the exact same formatting as `sample_test_out.csv`
-
-2. All participating teams must also provide a 1-page document describing:
-   - Methodology used
-   - Model architecture/algorithms selected
-   - Feature engineering techniques applied
-   - Any other relevant information about the approach
-   Note: A sample template for this documentation is provided in Documentation_template.md
-
-### **Academic Integrity and Fair Play:**
-
-**⚠️ STRICTLY PROHIBITED: External Price Lookup**
-
-Participants are **STRICTLY NOT ALLOWED** to obtain prices from the internet, external databases, or any sources outside the provided dataset. This includes but is not limited to:
-- Web scraping product prices from e-commerce websites
-- Using APIs to fetch current market prices
-- Manual price lookup from online sources
-- Using any external pricing databases or services
-
-**Enforcement:**
-- All submitted approaches, methodologies, and code pipelines will be thoroughly reviewed and verified
-- Any evidence of external price lookup or data augmentation from internet sources will result in **immediate disqualification**
-
-**Fair Play:** This challenge is designed to test your machine learning and data science skills using only the provided training data. External price lookup defeats the purpose of the challenge.
+### 2.1 Problem Analysis
+The challenge required predicting product prices using catalog 
+descriptions and images. Through exploratory data analysis (EDA), 
+we identified that keywords, item pack
+quantities, and numerical cues (e.g., “500ml”, “2pcs”) have strong 
+correlations with price. Outliers inextremely high or low price ranges 
+were also detected and handled using log transformation to
+stabilize variance.
 
 
-### Tips for Success:
+**Key Observations:**
+1. Product text contains quantifiable info (pack, quantity) extractable via regex.
 
-- Consider both textual features (catalog_content) and visual features (product images)
-- Explore feature engineering techniques for text and image data
-- Consider ensemble methods combining different model types
-- Pay attention to outliers and data preprocessing
+2. Numeric features like text length, word count, and custom pack/quantity indicators (ipq) help distinguish product types.
+
+3. Log-transforming prices mitigates skew in target distribution.
+
+4.  Text length and presence of numerical quantities directly influenced 
+pricing. Certain product descriptors (e.g., “Premium”, “Refill”,“Combo”, 
+“Pack of”) increased price. Normalizing and tokenizing catalog text 
+improved generalization and reduced noise.
+
+### 2.2 Solution Strategy
+
+**Approach Type:** Single Model(LightGBM Regression) 
+**Core Innovation:** Developed a hybrid text-numeric feature set by extracting quantity clues from product descriptions via custom regex and combining them with TF-IDF vectors, enabling the LightGBM regressor to capture both semantic and structured pricing signals.
+
+---
+
+## 3. Model Architecture
+
+### 3.1 Architecture Overview
+Text and numeric features are extracted then concatenated for input to a LightGBM model using log-transformed price targets. Cross-validation with KFold ensures performance robustness.
+Catalog Text/Numeric Input
+    │
+┌───┴─────────────┐
+│ Text Preprocessing (TF-IDF) ──────────┐
+│ Numeric Extraction (Custom Regex/IPQ) │
+└─┬───────────────┘
+  │
+Concatenation
+  │
+LightGBM Regression
+  │
+Predicted Price (log→exp1 back-transformation)
+
+### 3.2 Model Components
+
+**Text Processing Pipeline:**
+- [✅] Preprocessing steps: Lower-casing, fill missing, TF-IDF vectorization (1-2 ngram, 50k max features)
+- [✅] Model type: TF-IDF Vectorizer + concatenation with numerics
+- [✅] Key parameters: max_features=50000, ngram_range=(1,2), stop_words='english'
+
+**Image Processing Pipeline:**
+- [✅] Preprocessing steps: Regex-based quantity extraction (ipq), length, digit and word counts, missing fill.
+- [✅] Model type:  StandardScaler normalization, feature engineering
+- [✅] Key parameters: Numeric columns: ['text_len', 'num_words', 'num_digits', 'ipq']
+
+---
+
+## 4. Model Performance
+
+### 4.1 Validation Results
+- **SMAPE Score:** 51.872407416018994
+- **Other Metrics:** 
+MAE: 11.457677624314073
+RMSE: 27.4367
+R² Score: 0.3243
+
+## 5. Conclusion
+Our LightGBM-based solution effectively merges semantic and structured data for price prediction, achieving strong validation metrics. Key insights include the importance of custom numeric extraction from text and log-based price handling. The methodology can be generalized to similar e-commerce ML challenges.
+
+---
+
+## Appendix
+
+### A. Code artefacts
+https://colab.research.google.com/drive/1nSSepzBAXKDD42O5RpHO4pwpMbiZ0xlc?usp=drive_link
+
+### B. Additional Results
+Sample comparison:
+   Actual Price  Predicted Price      Error     % Error
+0          4.89         6.587686   1.697686   34.717505
+1         13.12        13.636734   0.516734    3.938520
+2          1.97         7.603253   5.633253  285.951948
+3         30.34        13.413264 -16.926736  -55.790166
+4         66.49        17.969252 -48.520748  -72.974504
+5         18.50         9.920022  -8.579978  -46.378261
+6          5.99         8.355636   2.365636   39.493082
+7         94.00        49.666167 -44.333833  -47.163652
+8         35.74        19.314985 -16.425015  -45.956953
+9         31.80        14.261101 -17.538899  -55.153770
+
+Drive Link: https://drive.google.com/drive/folders/1lI_AVOVOtZW6uqnZgL8tzHf09yDnxeHi?usp=sharing
+
+Scatter Plot: Actual vs Predicted Prices
+Error Histogram: Distribution of Prediction Errors
+Correlation Heatmap: Numeric Features
+
+---
